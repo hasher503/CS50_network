@@ -1,0 +1,94 @@
+<!--Pagination NavBar and Posts Divs for any page with lists of 10 posts at a time-->
+{% load static %}
+
+<!--Pagination navigation for Profile page (with target user) -->
+{% if target %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination pag-align">
+            {% if pdata.prev_page > 0 %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url pdata.route name=target pnum=pdata.prev_page %}">Previous</a></li>
+            {% else %}
+                <!-- disabled previous button if page 1 -->
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span></li>
+            {% endif %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link"> {{ pdata.pnum }} </span></li>
+            {% if pdata.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url pdata.route name=target pnum=pdata.next_page %}">Next</a></li>
+            {% else %}
+                <!-- disabled next button if last page -->
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% else %}
+<!--Pagination navigation for Index or Following page (no target user)-->
+     <nav aria-label="Page navigation">
+        <ul class="pagination pag-align">
+            {% if pdata.prev_page > 0 %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url pdata.route pnum=pdata.prev_page %}">Previous</a></li>
+            {% else %}
+                <!-- disabled previous button if page 1 -->
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span></li>
+            {% endif %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link"> {{ pdata.pnum }} </span></li>
+            {% if pdata.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url pdata.route pnum=pdata.next_page %}">Next</a></li>
+            {% else %}
+                <!-- disabled next button if last page -->
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+<!-- All posts -->
+{% for post in pdata.page_list %}
+    <div class="post-container">
+        <div class="grid-item-pic">
+        <!-- profile avatar or anon icon -->
+        {% if post.user.avatar %}
+            <img src="{{ post.user.avatar.url }}" class="post-pic">
+        {% else %}
+            <img src="{% static 'network/anon.jpg' %}" class="post-pic">
+        {% endif %}
+        <!-- post text -->
+        </div>
+        <div id={{ post.pk }} class="grid-item-text">
+            <div class="user-link">
+                <a href="{% url 'profile' name=post.user.username %}">
+                    {{ post.user.username }} 
+                </a>
+            </div>
+            <div class="timestamp">· {{ post.timestamp }} </div>
+            <!--extra div here for appending the editbox in javascript-->
+            <div>
+                <p id="{{post.pk}}-body"> {{ post.body }} </p>
+            </div>
+            <!--if this user already likes this post: red background button to unlike-->
+            {% if user.is_authenticated %}
+                {% if request.user in post.likes.all %}
+                    <i class="fa fa-thumbs-up btn btn-danger"> {{ post.likes__count }}</i>
+                <!--otherwise outline button to like-->
+                {% else %}
+                    <i class="fa fa-thumbs-up btn btn-outline-danger"> {{ post.likes__count }}</i>
+                {% endif %}
+                {% if request.user == post.user %}
+                    <button class="edit btn btn-sm btn-outline-primary">Edit</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}
+
+{% block script %}
+<script src="{% static 'network/paginate.js' %}"></script>
+{% endblock %}
